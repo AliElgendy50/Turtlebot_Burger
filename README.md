@@ -16,4 +16,7 @@
 (The Launch file will launch everything)
 
 
+#For testing (cmd_vel of coming from encoders to Gazebo)
+
+#-rostopic echo /cmd_vel
 
