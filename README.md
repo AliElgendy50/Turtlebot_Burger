@@ -10,28 +10,10 @@
 # At My Laptop: sudo rfcomm connect rfcomm0 EC:94:CB:6B:15:3A
 
 
+#TO LAUNCH THE PROJECT, RUN THE FOLLOWING COMMAND,
 
-#Run the following commands to launch the Project:
-#Run the commands in order,
-
-#-roscore
-
-#-rosrun rosserial_python serial_node.py _port:=/dev/ttyACM0 _baud:=57600 __name:=com2
-
-#-rosrun turtlebot3_laptop_code laptop.py
-
-#-rosrun rosserial_python serial_node.py _port:=/dev/rfcomm0 _baud:=115200 __name:=com1
+-roslaunch turtlebot3_project_launch project.launch
+(The Launch file will launch everything)
 
 
 
-#Then for GAZEBO:
-
-#-export TURTLEBOT3_MODEL=burger
-
-#-roslaunch turtlebot3_gazebo turtlebot3_empty_world.launch
-
-
-
-#For testing (cmd_vel of coming from encoders to Gazebo)
-
-#-rostopic echo /cmd_vel
