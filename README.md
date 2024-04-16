@@ -4,7 +4,12 @@
 
 #-connect the usb and then run the following command,
 
+
 #-sudo rfcomm bind rfcomm0 "Address of Device on Bluetooth"
+
+# At My Laptop: sudo rfcomm connect rfcomm0 EC:94:CB:6B:15:3A
+
+
 
 #Run the following commands to launch the Project:
 #Run the commands in order,
