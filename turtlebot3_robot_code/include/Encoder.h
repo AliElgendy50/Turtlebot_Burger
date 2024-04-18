@@ -3,7 +3,7 @@
 #define ENCODER_LEFT_MOTOR_B 5        //GREEN B channel for encoder of left motor
 
 #define ENCODER_RIGHT_MOTOR_A 23        //YELLOW A channel for encoder of right motor
-#define ENCODER_RIGHT_MOTOR_B 22        //GREEN B channel for encoder of right motor
+#define ENCODER_RIGHT_MOTOR_B 4        //GREEN B channel for encoder of right motor
 
 #define  encoder_cpr  500             //Encoder ticks or counts per rotation
 
