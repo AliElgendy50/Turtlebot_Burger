@@ -1,5 +1,4 @@
 /**********************Include the necessary libraries********************************/
-
 #include "DifferentialDriveRobot.h"
 #include <BluetoothSerial.h>
 #include "Encoder.h"
@@ -128,14 +127,13 @@ void setup()
 {
   // Start the Bluetooth connection
   SerialBT.begin("ESP32_BT"); //Bluetooth device name
-
   // Initialize the robot
   my_robot = new DifferentialDriveRobot(
     new DCMotor(IN1, IN2, ENA),
     new DCMotor(IN3, IN4,ENB));
 
   // Update the robot's parameters
-  my_robot->updateParameters(0.2, 1.0);
+  my_robot->updateParameters(0.2, 1);
 
   // Set encoder pins as inputs
   pinMode(ENCODER_LEFT_MOTOR_A, INPUT);
