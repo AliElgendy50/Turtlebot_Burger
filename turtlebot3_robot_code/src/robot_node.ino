@@ -2,7 +2,9 @@
 #include "DifferentialDriveRobot.h"
 #include <BluetoothSerial.h>
 #include "Encoder.h"
-
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
 
 /*********************************Robot Details***************************************/
 
@@ -12,7 +14,6 @@ const float wheelRadius=0.04;
 const float wheelBase=0.13;
 
 /**********************************Define variables for time tracking*****************/
-
 unsigned long previousMillis = 0; 
 const long interval = 1000; 
 unsigned long currentMillis = 0;
@@ -55,8 +56,9 @@ public:
   bool connected;
 };
 
+//Create an instance for mpu
+Adafruit_MPU6050 mpu;
 // Create a ROS node handle
-
 ros::NodeHandle_<BluetoothHardware> nh;
 
 /************************************************************************************/
@@ -76,6 +78,10 @@ ros::Subscriber <geometry_msgs::Twist> sub("/turtle1/cmd_vel", &robot_callback);
 // Create a geometry_msgs::Twist object and a ROS publisher
 geometry_msgs::Twist cmd_msg;
 ros::Publisher cmd_pub("cmd_vel", &cmd_msg);
+
+// Create a geometry_msgs::Twist object and a ROS publisher
+geometry_msgs::Twist mpu_msg;
+ros::Publisher mpu_pub("mpu", &mpu_msg);
 
 
 
@@ -135,6 +141,21 @@ void setup()
   // Update the robot's parameters
   my_robot->updateParameters(0.2, 1);
 
+  // Try to initialize the MPU6050
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
+  }
+  Serial.println("MPU6050 Found!");
+  // set accelerometer range to +-2G
+  mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
+  // set gyro range to +- 500 deg/s
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  // set filter bandwidth to 21 Hz
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+
   // Set encoder pins as inputs
   pinMode(ENCODER_LEFT_MOTOR_A, INPUT);
   pinMode(ENCODER_RIGHT_MOTOR_A, INPUT);
@@ -152,6 +173,7 @@ void setup()
   // Initialize the ROS node, advertise the publisher, and subscribe to the subscriber
   nh.initNode();
   nh.advertise(cmd_pub);
+  nh.advertise(mpu_pub);
   nh.subscribe(sub);
 
 }
@@ -161,25 +183,45 @@ void loop()
 { 
 
   // Update the current time 
- currentMillis = millis();
+  currentMillis = millis();
+
+  //get mpu readings
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
 
 
    // If the interval has passed
  if(currentMillis - previousMillis >= interval)
  {
+  if(int(a.acceleration.x*10)>-10 && int(a.acceleration.x*10)<10 && int(a.acceleration.y*10)>-10 && int(a.acceleration.y*10)<10)
+  {
+    mpu_msg.linear.z = 0;
+    cmd_msg.linear.x = 0;
+  }
+  else{
     // Calculate the angular velocities of the encoders
     encoder_angular_A=(encoderCount_A*2*PI)/encoder_cpr;
     encoder_angular_B=(encoderCount_B*2*PI)/encoder_cpr;
 
     // Convert the angular velocities to a linear velocity and an angular velocity
     encoder_linearVelocity = (wheelRadius / 2) * (encoder_angular_A + encoder_angular_B);
-    encoder_angularVelocity = (wheelRadius / wheelBase )* (encoder_angular_A - encoder_angular_B);
 
     // Update the cmd_msg object and publish it
-    cmd_msg.linear.x=encoder_linearVelocity;
-    cmd_msg.angular.z=encoder_angularVelocity ;
-    cmd_pub.publish(&cmd_msg);
+    cmd_msg.linear.x=encoder_linearVelocity*3;
 
+    mpu_msg.linear.z=1;
+
+
+  }
+    mpu_msg.linear.x = int(a.acceleration.x*10);
+    mpu_msg.linear.y = int(a.acceleration.y*10);
+    // mpu_msg.linear.z = int(sqrt(pow(a.acceleration.x,2)+pow(a.acceleration.y,2)));
+    mpu_msg.angular.z = int(g.gyro.z*10);
+    cmd_msg.angular.z = g.gyro.z-0.05;
+
+  
+    mpu_pub.publish(&mpu_msg);
+    cmd_pub.publish(&cmd_msg);
     // Reset the encoder counts
     encoderCount_A=0;
     encoderCount_B=0;
