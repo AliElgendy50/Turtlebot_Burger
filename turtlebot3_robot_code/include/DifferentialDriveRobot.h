@@ -23,6 +23,8 @@ class DifferentialDriveRobot
 	double bound_right;
 	double bound_left;
 
+
+
 	// Declare the maximum speed and turn rate
 	float max_speed;
 	float max_turn;
@@ -34,7 +36,7 @@ public:
 	DifferentialDriveRobot(DCMotor*, DCMotor*, double, double);
 
 	// Declare the move and updateParameters methods
-	void move(const double, const double);
+	void move(double,double);
 	void updateParameters(float, float);
 };
 
@@ -61,7 +63,7 @@ DifferentialDriveRobot::DifferentialDriveRobot
 
 // Define the move method, which moves the robot based on a linear and angular velocity
 
-void DifferentialDriveRobot::move(const double lin, const double ang) {
+void DifferentialDriveRobot::move(double lin, double ang) {
 
 	/**
 	 * 
@@ -71,33 +73,32 @@ void DifferentialDriveRobot::move(const double lin, const double ang) {
 	 *
 	 */
 
-	 // Calculate the right and left wheel velocities
-
+	//remove error from readings
+	// Calculate the right and left wheel velocities
 	double u_r = (lin + ang * this->wheel_distance/2.0) / this->wheel_radius;
 	double u_l = (lin - ang * this->wheel_distance/2.0) / this->wheel_radius;
 
 	// Move the right motor
 	if (u_r > 0) {
-		
-
 		motor_right->CW(
 			map(static_cast<INT_PWM>(u_r), 0, this->bound_right, 0, MAX_VALUE));
 	} else {
 
 		motor_right->CCW(
-			map(static_cast<INT_PWM>(-u_r), 0, this->bound_right, 0, MAX_VALUE));
+			map(static_cast<INT_PWM>(u_r), 0, -this->bound_right, 0, -MAX_VALUE));
 	}
 
 	// Move the left motor
 	if (u_l > 0) {
 		
-		motor_left->CCW(
-			map(static_cast<INT_PWM>(u_l), 0, this->bound_left, 0, MAX_VALUE));
-	} else {
-
 		motor_left->CW(
-			map(static_cast<INT_PWM>(-u_l), 0, this->bound_left, 0, MAX_VALUE));
+			map(static_cast<INT_PWM>(u_l), 0, this->bound_left, 0, MAX_VALUE));
 	}
+	else
+	{
+		motor_left->CCW(
+			map(static_cast<INT_PWM>(u_l), 0, -this->bound_left, 0, -MAX_VALUE));
+	}	
 }
 
 
@@ -106,8 +107,9 @@ void DifferentialDriveRobot::updateParameters(float max_speed, float max_turn) {
 	
 	this->max_speed = max_speed;
 	this->max_turn = max_turn;
-	this->bound_right = 
-		(this->max_speed + this->max_turn * this->wheel_distance/2.0) / this->wheel_radius;
-	this->bound_left = 
-		(this->max_speed - this->max_turn * this->wheel_distance/2.0) / this->wheel_radius;
+	this->bound_right = 250;
+		// (this->max_speed + this->max_turn * this->wheel_distance/2.0) / this->wheel_radius;
+	this->bound_left = 250;
+		// (this->max_speed - this->max_turn * this->wheel_distance/2.0) / this->wheel_radius;
+
 }
