@@ -4,15 +4,19 @@
   <env name="TURTLEBOT3_MODEL" value="burger"/>
 
   <!-- Run the rosserial_python serial_node for the USB connection -->
-  <node pkg="rosserial_python" type="serial_node.py" name="com2" args="_port:=/dev/ttyACM0 _baud:=57600"/>
+  <node pkg="rosserial_python" type="serial_node.py" name="Joystick_Node" args="_port:=/dev/ttyACM0 _baud:=57600"/>
 
   <!-- Run the laptop.py script -->
   <node pkg="turtlebot3_laptop_code" type="laptop.py" name="laptop"/>
+  
 
   <!-- Run the rosserial_python serial_node for the Bluetooth connection -->
-  <node pkg="rosserial_python" type="serial_node.py" name="com1" args="_port:=/dev/rfcomm0 _baud:=115200"/>
+  <node pkg="rosserial_python" type="serial_node.py" name="Robot_Node" args="_port:=/dev/rfcomm0 _baud:=115200"/>
 
   <!-- Launch the Gazebo simulation -->
   <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_empty_world.launch"/>
+  
+   <!-- Run the visualisation.py script -->
+  <node pkg="turtlebot3_laptop_code" type="visualisation.py" name="visualisation"/>
 
 </launch>
