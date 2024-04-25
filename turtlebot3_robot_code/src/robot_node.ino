@@ -9,7 +9,6 @@
 /*********************************Robot Details***************************************/
 
 // Define the robot's wheel radius and wheel base
-
 const float wheelRadius=0.04;
 const float wheelBase=0.13;
 
@@ -78,11 +77,6 @@ ros::Subscriber <geometry_msgs::Twist> sub("/turtle1/cmd_vel", &robot_callback);
 // Create a geometry_msgs::Twist object and a ROS publisher
 geometry_msgs::Twist cmd_msg;
 ros::Publisher cmd_pub("cmd_vel", &cmd_msg);
-
-// Create a geometry_msgs::Twist object and a ROS publisher
-geometry_msgs::Twist mpu_msg;
-ros::Publisher mpu_pub("mpu", &mpu_msg);
-
 
 
 /********************************** Function to handle encoder A************************************/
@@ -173,7 +167,6 @@ void setup()
   // Initialize the ROS node, advertise the publisher, and subscribe to the subscriber
   nh.initNode();
   nh.advertise(cmd_pub);
-  nh.advertise(mpu_pub);
   nh.subscribe(sub);
 
 }
@@ -190,12 +183,11 @@ void loop()
   mpu.getEvent(&a, &g, &temp);
 
 
-   // If the interval has passed
+ // If the interval has passed
  if(currentMillis - previousMillis >= interval)
  {
   if(int(a.acceleration.x*10)>-10 && int(a.acceleration.x*10)<10 && int(a.acceleration.y*10)>-10 && int(a.acceleration.y*10)<10)
   {
-    mpu_msg.linear.z = 0;
     cmd_msg.linear.x = 0;
   }
   else{
@@ -209,19 +201,14 @@ void loop()
     // Update the cmd_msg object and publish it
     cmd_msg.linear.x=encoder_linearVelocity*3;
 
-    mpu_msg.linear.z=1;
-
 
   }
-    mpu_msg.linear.x = int(a.acceleration.x*10);
-    mpu_msg.linear.y = int(a.acceleration.y*10);
-    // mpu_msg.linear.z = int(sqrt(pow(a.acceleration.x,2)+pow(a.acceleration.y,2)));
-    mpu_msg.angular.z = int(g.gyro.z*10);
-    cmd_msg.angular.z = g.gyro.z-0.05;
+    //publishe angular velocity from imu
+    cmd_msg.angular.z = g.gyro.z-0.05+0.019;
 
-  
-    mpu_pub.publish(&mpu_msg);
+    //publish message
     cmd_pub.publish(&cmd_msg);
+    
     // Reset the encoder counts
     encoderCount_A=0;
     encoderCount_B=0;
