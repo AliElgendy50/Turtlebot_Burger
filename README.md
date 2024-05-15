@@ -37,6 +37,8 @@ At My Laptop: sudo rfcomm connect rfcomm0 EC:94:CB:6B:15:3A
 
 
 
+
+
 #TO LAUNCH THE OBJECT AVOIDANCE PROJECT, RUN THE FOLLOWING,
 
 (1) change the url in the object_detection.py according to your ip camera.
