@@ -9,8 +9,8 @@
 
 
 #define ENB  13 // PWM pin for motor B
-#define IN3  14 // Control pin 1 for motor B
-#define IN4  12 // Control pin 2 for motor B
+#define IN3  12 // Control pin 1 for motor B
+#define IN4  14 // Control pin 2 for motor B
 
 // Define the maximum PWM value and the PWM data type based on whether 16-bit PWM is used
 
