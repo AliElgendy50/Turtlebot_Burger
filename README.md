@@ -34,3 +34,12 @@ At My Laptop: sudo rfcomm connect rfcomm0 EC:94:CB:6B:15:3A
 #TO LAUNCH THE PROJECT, RUN THE FOLLOWING COMMAND,
 
 -roslaunch turtlebot3_project_launch project.launch (The Launch file will launch everything)
+
+#TO LAUNCH THE OBJECT AVOIDANCE PROJECT, RUN THE FOLLOWING,
+
+(1) change the url in the object_detection.py according to your ip camera.
+(2) run the following command,
+-roslaunch turtlebot3_project_launch obstacle_avoidance.launch
+
+
+
