@@ -9,6 +9,7 @@
 #include <nav_msgs/Odometry.h>
 #include <ESP32Servo.h>
 #include <Ultrasonic.h>
+#include <std_msgs/UInt16.h>
 
 
 /*********************************Define the servo data*********************************/
@@ -18,10 +19,10 @@ int angle = 0;
 char flag=0;
 
 /*********************************Define Ultrasonic data*********************************/
-const int trigPin1 = 2;  // Replace with your GPIO pin
-const int echoPin1 = 15; // Replace with your GPIO pin
+#define TRIGGER_PIN1 2
+#define ECHO_PIN1 35
 
-Ultrasonic ultrasonic(trigPin1, echoPin1);
+Ultrasonic ultrasonic1(TRIGGER_PIN1, ECHO_PIN1);
 
 /*********************************Robot Details***************************************/
 
@@ -107,8 +108,9 @@ nav_msgs::Odometry odom_msg;
 ros::Publisher odom_pub("odom", &odom_msg);
 
 // Publish Ultrasonic data
-geometry_msgs::Twist ultrasonic_msg;
-ros::Publisher sensor_pub("ultrasonic_data", &ultrasonic_msg);
+std_msgs::UInt16 distance_msg1;
+ros::Publisher distance_pub1("distance1", &distance_msg1);
+
 
 /********************************** Function to handle encoder A************************************/
 
@@ -202,7 +204,7 @@ void setup()
   nh.advertise(cmd_pub);
   nh.advertise(imu_pub);
   nh.advertise(odom_pub);
-  nh.advertise(sensor_pub);
+  nh.advertise(distance_pub1);
   nh.subscribe(sub);
 
 }
@@ -222,6 +224,9 @@ void loop()
 
  if(currentMillis - previousMillis >= interval2)
  {
+  unsigned int distance = ultrasonic1.read();
+  distance_msg1.data = distance;
+  distance_pub1.publish(&distance_msg1);
   if(flag==0)
   {
     angle+=1;
@@ -240,16 +245,13 @@ void loop()
       flag=0;
     }
   }
-  previousMillis = currentMillis;
+  // previousMillis = currentMillis;
  }
+
+ 
  // If the interval has passed
  if(currentMillis - previousMillis >= interval)
  {
-  ultrasonic_msg.linear.x = ultrasonic.read();
-  // ultrasonic_msg.data[1] = distance2;
-  // printf("Ultrasonic Sensor 1: %f", distance1);
-  sensor_pub.publish(&ultrasonic_msg);
-
   if(int(a.acceleration.x*10)>-10 && int(a.acceleration.x*10)<10 && int(a.acceleration.y*10)>-10 && int(a.acceleration.y*10)<10)
   {
     cmd_msg.linear.x = 0;
@@ -261,7 +263,6 @@ void loop()
 
     // Convert the angular velocities to a linear velocity and an angular velocity
     encoder_linearVelocity = (wheelRadius / 2) * (encoder_angular_A + encoder_angular_B);
-
     // Update the cmd_msg object and publish it
     cmd_msg.linear.x=encoder_linearVelocity*3;
 
@@ -281,25 +282,25 @@ void loop()
     // Read the ultrasonic sensor data
 
    
-    // imu_msg.header.stamp = nh.now();
-    // imu_msg.header.frame_id = "imu_link";
-    // imu_msg.orientation_covariance[0] = -1; // Indicates that orientation data is not provided
-    // imu_msg.angular_velocity.x = g.gyro.x;
-    // imu_msg.angular_velocity.y = g.gyro.y;
-    // imu_msg.angular_velocity.z = g.gyro.z;
-    // imu_msg.linear_acceleration.x = a.acceleration.x;
-    // imu_msg.linear_acceleration.y = a.acceleration.y;
-    // imu_msg.linear_acceleration.z = a.acceleration.z;
-    // imu_pub.publish(&imu_msg);
+    imu_msg.header.stamp = nh.now();
+    imu_msg.header.frame_id = "imu_link";
+    imu_msg.orientation_covariance[0] = -1; // Indicates that orientation data is not provided
+    imu_msg.angular_velocity.x = g.gyro.x;
+    imu_msg.angular_velocity.y = g.gyro.y;
+    imu_msg.angular_velocity.z = g.gyro.z;
+    imu_msg.linear_acceleration.x = a.acceleration.x;
+    imu_msg.linear_acceleration.y = a.acceleration.y;
+    imu_msg.linear_acceleration.z = a.acceleration.z;
+    imu_pub.publish(&imu_msg);
 
     
-    // // Publish simplified Odometry data
-    // odom_msg.header.stamp = nh.now();
-    // odom_msg.header.frame_id = "odom";
-    // odom_msg.child_frame_id = "base_link";
-    // odom_msg.twist.twist.linear.x = encoder_linearVelocity;
-    // odom_msg.twist.twist.angular.z = g.gyro.z;
-    // odom_pub.publish(&odom_msg);
+    // Publish simplified Odometry data
+    odom_msg.header.stamp = nh.now();
+    odom_msg.header.frame_id = "odom";
+    odom_msg.child_frame_id = "base_link";
+    odom_msg.twist.twist.linear.x = encoder_linearVelocity;
+    odom_msg.twist.twist.angular.z = g.gyro.z;
+    odom_pub.publish(&odom_msg);
 
     // Update the previous time
     previousMillis = currentMillis; 
