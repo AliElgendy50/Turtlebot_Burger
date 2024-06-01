@@ -80,12 +80,12 @@ void DifferentialDriveRobot::move(double lin, double ang) {
 
 	// Move the right motor
 	if (u_r > 0) {
-		motor_right->CW(
+		motor_right->CCW(
 			map(static_cast<INT_PWM>(u_r), 0, this->bound_right, 0, MAX_VALUE));
 	} else {
 
-		motor_right->CCW(
-			map(static_cast<INT_PWM>(u_r), 0, -this->bound_right, 0, -MAX_VALUE));
+		motor_right->CW(
+			map(static_cast<INT_PWM>(-u_r), 0, this->bound_right, 0, MAX_VALUE));
 	}
 
 	// Move the left motor
@@ -97,7 +97,7 @@ void DifferentialDriveRobot::move(double lin, double ang) {
 	else
 	{
 		motor_left->CCW(
-			map(static_cast<INT_PWM>(u_l), 0, -this->bound_left, 0, -MAX_VALUE));
+			map(static_cast<INT_PWM>(-u_l), 0, this->bound_left, 0, MAX_VALUE));
 	}	
 }
 
@@ -107,8 +107,7 @@ void DifferentialDriveRobot::updateParameters(float max_speed, float max_turn) {
 	
 	this->max_speed = max_speed;
 	this->max_turn = max_turn;
-	this->bound_right = 250;
-		// (this->max_speed + this->max_turn * this->wheel_distance/2.0) / this->wheel_radius;
+	this->bound_right =250;
 	this->bound_left = 250;
 		// (this->max_speed - this->max_turn * this->wheel_distance/2.0) / this->wheel_radius;
 
