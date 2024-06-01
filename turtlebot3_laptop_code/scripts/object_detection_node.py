@@ -22,25 +22,26 @@ class ObjectDetector:
         # Publisher for annotated image
         self.image_pub = rospy.Publisher('/object_detection/image', Image, queue_size=10)
 
-        # Publisher for  position
+        # Publisher for object position
         self.object_position_pub = rospy.Publisher('/object_position', Point, queue_size=10)
 
+        # Publisher for detected class
+        self.class_pub = rospy.Publisher('/object_detection/class', String, queue_size=10)
+
         # Load the YOLOv8 model
-        self.model = YOLO('/home/ali/catkin_ws/src/Turtlebot_Burger/turtlebot3_laptop_code/scripts/best.pt')
+        self.model = YOLO('/home/ali/catkin_ws/src/Turtlebot_Burger/turtlebot3_laptop_code/scripts/statues_A.pt')
         
-        self.url = "http://192.168.100.7:8080/shot.jpg"
-        
+        self.url = "http://192.168.43.1:8080/shot.jpg"
 
         # Loop for processing frames
         self.rate = rospy.Rate(30)  # Adjust as needed
 
     def detect_object(self):
-        
         # Fetch image from the URL
         img_resp = requests.get(self.url)
         img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
         img = cv2.imdecode(img_arr, -1)
-        img = imutils.resize(img, width=1000, height=1800) 
+        img = imutils.resize(img, width=1000, height=1800)
 
         # Run YOLOv8 tracking on the frame, persisting tracks between frames
         results = self.model.track(img, persist=True, conf=0.6)
@@ -49,26 +50,39 @@ class ObjectDetector:
         object_position.y = 0
 
         if len(results[0].boxes) > 0:
-            # Extract position and publish object positions for all detections
+            # Loop through all detected objects
             for cls, _, xyxy in zip(results[0].boxes.cls, results[0].boxes.conf, results[0].boxes.xyxy):
-                # Extract bounding box coordinates
-                object_bbox = [int(coord) for coord in xyxy.tolist()]
+                class_label = None
+                # Check the detected class and set the appropriate label
+                if cls == 0:
+                    class_label = "Chinese Fu Dog"
+                elif cls == 1:
+                    class_label = "Chopin"
+                elif cls == 2:
+                    class_label = "King-Tut"
+                elif cls == 3:
+                    class_label = "Nefertiti"
 
-                # Publish object position
-                
-                object_position.x = (object_bbox[0] + object_bbox[2]) / 2
-                object_position.y = (object_bbox[1] + object_bbox[3]) / 2
-        self.object_position_pub.publish(object_position)
-            
+                if class_label:
+                    # Print the detected class
+                    print(f"Detected class: {class_label}")
+
+                    # Publish the class label
+                    self.class_pub.publish(class_label)
+
+                    # Extract bounding box coordinates
+                    object_bbox = [int(coord) for coord in xyxy.tolist()]
+
+                    # Calculate the center of the bounding box
+                    object_position.x = (object_bbox[0] + object_bbox[2]) / 2
+                    object_position.y = (object_bbox[1] + object_bbox[3]) / 2
+                    self.object_position_pub.publish(object_position)
 
         # Visualize the results on the frame
         annotated_frame = results[0].plot()
 
         # Convert the annotated frame from BGR to RGB
         annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
-
-        # Rotate the frame by 90 degrees counterclockwise
-        #annotated_frame_rgb = cv2.rotate(annotated_frame_rgb, cv2.ROTATE_90_CLOCKWISE)
 
         # Convert the frame to ROS Image message
         image_msg = self.bridge.cv2_to_imgmsg(annotated_frame_rgb, encoding="rgb8")
@@ -80,9 +94,6 @@ class ObjectDetector:
         while not rospy.is_shutdown():
             self.detect_object()
             self.rate.sleep()
-
-        # Release the video capture
-        self.video_capture.release()
 
 if __name__ == '__main__':
     try:
